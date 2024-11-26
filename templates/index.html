@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition Attendance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 90vh;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        #container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            flex: 1;
+            max-width: 1200px;
+        }
+        #video-container {
+            flex: 0 0 65%;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+        #attendance {
+            flex: 0 0 30%;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+        #attendance h3 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        #attendance ul {
+            list-style: none;
+            padding: 0;
+        }
+        #attendance li {
+            background: #f0f8ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        #buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        button {
+            padding: 12px 25px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        #video-stream {
+            width: 100%;
+            height: auto;
+        }
+        #video-stream img {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="video-container">
+            <div id="video-stream">
+                <!-- Webcam stream will appear here -->
+            </div>
+        </div>
+
+        <div id="attendance">
+            <h3>Attendance List</h3>
+            <ul id="attendance-list">
+                <!-- Attendance entries will appear here -->
+            </ul>
+        </div>
+    </div>
+
+    <div id="buttons">
+        <button id="start-button">Start Camera</button>
+        <button id="stop-button" disabled>Stop Camera</button>
+    </div>
+
+    <script>
+        const startButton = document.getElementById('start-button');
+        const stopButton = document.getElementById('stop-button');
+        const videoStream = document.getElementById('video-stream');
+        const attendanceList = document.getElementById('attendance-list');
+
+        startButton.addEventListener('click', () => {
+            videoStream.innerHTML = '<img src="/start_camera" style="width: 100%;">';
+            startButton.disabled = true;
+            stopButton.disabled = false;
+            fetchAttendance();
+        });
+
+        stopButton.addEventListener('click', () => {
+            fetch('/stop_camera').then(() => {
+                videoStream.innerHTML = ''; // Clear video feed
+                startButton.disabled = false;
+                stopButton.disabled = true;
+            });
+        });
+
+        function fetchAttendance() {
+            fetch('/get_attendance')
+                .then(response => response.json())
+                .then(data => {
+                    attendanceList.innerHTML = '';
+                    data.forEach(entry => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${entry.name} - ${entry.time}`;
+                        attendanceList.appendChild(listItem);
+                    });
+                });
+            setTimeout(fetchAttendance, 2000); // Fetch updates every 2 seconds
+        }
+    </script>
+</body>
+</html>
